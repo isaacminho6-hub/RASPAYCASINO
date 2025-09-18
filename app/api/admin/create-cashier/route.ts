@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import type { User } from '@supabase/supabase-js'
 
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -26,22 +27,29 @@ export async function POST(req: NextRequest) {
     })
 
     const { data: userData } = await supabaseServer.auth.getUser()
-    if (!userData?.user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+    if (!userData?.user) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+    }
 
     const { data: profile } = await supabaseServer
       .from('profiles')
       .select('role')
       .eq('id', userData.user.id)
       .maybeSingle()
-    if (profile?.role !== 'admin') return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+
+    if (profile?.role !== 'admin') {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+    }
 
     // 2) buscar usuario por email
     const { data: listPage1, error: listErr } =
       await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 })
     if (listErr) throw listErr
 
-    const existing = listPage1.users.find(
-      u => (u.email || '').toLowerCase() === email.toLowerCase()
+    // ✅ FIX: tipar users explícitamente para evitar error TS
+    const users: User[] = listPage1?.users ?? []
+    const existing = users.find(
+      (u) => (u?.email ?? '').toLowerCase() === email.toLowerCase()
     )
 
     let authUserId: string | null = null
@@ -50,25 +58,30 @@ export async function POST(req: NextRequest) {
     let invited = false
 
     if (!existing) {
-      // 3A) no existe -> enviar invitación (email con set password)
+      // 3A) no existe -> enviar invitación (set password por email)
       const { data: invitedData, error: invErr } =
         await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
           redirectTo: `${SITE}/update-password`,
           data: { role: 'cashier' },
         })
-      if (invErr) return NextResponse.json({ error: invErr.message }, { status: 500 })
+      if (invErr) {
+        return NextResponse.json({ error: invErr.message }, { status: 500 })
+      }
       invited = true
       authUserId = invitedData.user?.id ?? null
-      inviteLink = (invitedData as any)?.action_link ?? null // algunos planes lo devuelven
+      // algunos planes devuelven el action_link directamente
+      inviteLink = (invitedData as any)?.action_link ?? null
     } else {
-      // 3B) ya existe -> generar link de recuperación para que establezca nueva contraseña
+      // 3B) ya existe -> generar link de recuperación
       authUserId = existing.id
       const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
         type: 'recovery',
         email,
         options: { redirectTo: `${SITE}/update-password` },
       })
-      if (linkErr) return NextResponse.json({ error: linkErr.message }, { status: 500 })
+      if (linkErr) {
+        return NextResponse.json({ error: linkErr.message }, { status: 500 })
+      }
       recoveryLink = (linkData as any)?.properties?.action_link ?? null
     }
 
@@ -80,11 +93,13 @@ export async function POST(req: NextRequest) {
     const { error: upErr } = await supabaseAdmin
       .from('profiles')
       .upsert({ id: authUserId, email, role: 'cashier' }, { onConflict: 'id' })
-    if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 })
+    if (upErr) {
+      return NextResponse.json({ error: upErr.message }, { status: 500 })
+    }
 
     await supabaseAdmin.from('wallets').upsert({ user_id: authUserId, balance: 0 })
 
-    // 5) si coins > 0 -> MINT a la caja del cajero (auditable)
+    // 5) si coins > 0 -> mint inicial auditable
     if (Number.isFinite(coins) && coins > 0) {
       await supabaseAdmin.rpc('wallet_increment', {
         p_user_id: authUserId,
