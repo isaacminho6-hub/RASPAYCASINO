@@ -1,0 +1,19 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="plate" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2B2147"></stop>
+      <stop offset="1" stop-color="#171235"></stop>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFF0C0"></stop>
+      <stop offset="1" stop-color="#F6CC3B"></stop>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="rgba(0,0,0,.35)"></feDropShadow>
+    </filter>
+  </defs>
+
+  <rect x="120" y="140" rx="36" ry="36" width="1360" height="620" fill="url(#plate)" stroke="rgba(246,204,59,.35)" stroke-width="4" filter="url(#soft)"></rect>
+
+  <text x="800" y="510" font-family="Montserrat, Poppins, Arial, sans-serif" font-weight="900" font-size="160" text-anchor="middle" fill="url(#gold)" stroke="#8F6A17" stroke-width="7" style="letter-spacing:2px">₲1.000</text>
+</svg>

@@ -1,0 +1,148 @@
+:root{
+  --bg:#0E0A1F;
+  --card:#171235;
+  --muted:#C9C4E4;
+  --gold:#F6CC3B;
+  --gold-strong:#A8791A;
+  --purple-1:#1C1442;
+  --purple-2:#3A2A78;
+  --white:#fff;
+
+  /* extras marketing */
+  --violet-2:#22173D;
+  --violet-3:#2B2147;
+  --violet-4:#171235;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background:
+    radial-gradient(1000px 500px at 50% -10%, rgba(246,204,59,.18), transparent 60%),
+    var(--bg);
+  color:var(--white);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* ====== Layout base ====== */
+.container{max-width:1100px;margin:0 auto;padding:16px}
+.header{display:flex;align-items:center;gap:10px;padding:12px 0}
+.logo{font-size:28px}
+
+/* ====== Botones ====== */
+.btn{background:#261E55;color:#fff;border:1px solid #3B2E77;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:800}
+.btn:hover{filter:brightness(1.05)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn-pill{border-radius:999px;background:#1E1842;border-color:#2E255F}
+.btn-gold{background:linear-gradient(180deg,#FFD86B,#E6B01B);border-color:var(--gold-strong);color:#231A00}
+.btn-warn{background:#D97706;border-color:#B45309}
+.btn-ok{background:#059669;border-color:#047857}
+.pulse{animation:rp-pulse 1.8s ease-in-out infinite}
+@keyframes rp-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+
+/* ====== Textos / Tarjetas ====== */
+.text-gold{color:var(--gold)}
+.text-muted{color:var(--muted)}
+.small{font-size:12px;color:var(--muted)}
+.card{
+  background:linear-gradient(180deg,#1A1438,#140F2B);
+  border:1px solid #2C234E;border-radius:16px;padding:16px
+}
+.card-strong{
+  background:linear-gradient(180deg,#1C1442,#0E0A1F);
+  border:1px solid #2C234E;border-radius:16px;padding:16px 18px
+}
+
+/* ====== GRID común ====== */
+.main-grid{display:grid;grid-template-columns:360px 1fr;gap:16px}
+@media(max-width: 900px){ .main-grid{grid-template-columns:1fr} }
+
+.relative{position:relative}
+.scratch-wrap{touch-action:none}
+
+/* ====== Admin ====== */
+.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width: 900px){ .admin-grid{grid-template-columns:1fr} }
+.section-title{font-size:20px;font-weight:800;display:flex;align-items:center;gap:8px}
+.section-sub{font-size:13px;color:var(--muted)}
+
+/* ====== Inputs ====== */
+.input{
+  width:100%;height:40px;border-radius:12px;
+  border:1px solid #3B2E77;background:#110c2a;color:#fff;
+  padding:0 12px;outline:none;
+}
+.input:focus{box-shadow:0 0 0 2px rgba(124,58,237,.35)}
+
+/* ====== Tabla ====== */
+.table{width:100%;border-collapse:collapse;font-size:14px}
+.table th{color:#C9C4E4;font-weight:700;text-align:left;padding:10px 6px}
+.table td{padding:10px 6px;border-top:1px solid #2C234E}
+.table-wrap{overflow:auto}
+
+/* ====== Chips / Badges ====== */
+.badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
+.badge-violet{background:#1E1842;border:1px solid #2E255F}
+.badge-amber{background:rgba(246,204,59,.12);border:1px solid rgba(246,204,59,.35);color:#FFD166}
+
+/* ====== Toast ====== */
+.toast{
+  position:fixed;right:24px;bottom:24px;border-radius:12px;
+  padding:10px 14px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+.toast-ok{background:rgba(5,150,105,.92)}
+.toast-err{background:rgba(225,29,72,.92)}
+
+/* ====== Marketing: hero y extras ====== */
+.shiny-headline{
+  font-size:40px; font-weight:900; letter-spacing:.5px;
+  background: linear-gradient(90deg,#ffffff 0%, var(--gold) 65%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  text-shadow:0 2px 0 rgba(0,0,0,.35);
+}
+
+.badge-countdown{
+  font-weight:800;font-size:12px;padding:6px 10px;border-radius:9999px;
+  border:1px solid rgba(246,204,59,.35);color:#fff;background:rgba(20,14,36,.6)
+}
+.badge-countdown .sep{opacity:.6;margin:0 6px}
+
+/* Marquee de ganadores */
+.marquee{overflow:hidden;white-space:nowrap;margin-top:10px;font-size:12px;opacity:.85}
+.marquee span{display:inline-block;padding-left:100%;animation:slide 22s linear infinite}
+@keyframes slide { 0%{transform:translateX(0)} 100%{transform:translateX(-100%)} }
+
+/* Scratch hint reutilizable */
+.scratch-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.scratch-hint .hint-text{
+  font-weight:900;letter-spacing:.14em;text-transform:uppercase;
+  font-size:clamp(16px,3.1vw,28px);padding:12px 22px;border-radius:9999px;color:#fff;
+  background:rgba(18,13,35,.80);border:1px solid rgba(246,204,59,.30);
+  box-shadow:0 8px 28px rgba(0,0,0,.35), inset 0 0 .5px rgba(255,255,255,.08);
+  backdrop-filter:blur(2px);animation:hint-glide 2.2s ease-in-out infinite
+}
+.scratch-hint .hint-finger{margin-right:12px;font-size:clamp(18px,3.2vw,30px);transform:translateY(-2px);animation:finger-bounce 1.6s ease-in-out infinite}
+@keyframes hint-glide {0%,100%{transform:translateY(0)} 50%{transform:translateY(-2px)}}
+@keyframes finger-bounce {0%,100%{transform:translateY(-1px)} 50%{transform:translateY(2px)}}
+
+/* Tutorial overlay */
+.tutorial{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:50}
+.tutorial-card{width:min(520px,90vw);background:linear-gradient(180deg,#22173D,#171235);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px}
+.tutorial-card .t-title{font-weight:900;font-size:20px;margin-bottom:10px}
+.tutorial-card ol{margin:0 0 14px 18px}
+.tutorial-card li{margin-bottom:6px}
+
+/* Footer legal */
+.legal{margin:26px 0 80px;display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;font-size:12px;opacity:.8}
+.legal a{color:#fff;text-decoration:underline}
+
+/* CTA sticky mobile */
+.sticky-cta{position:fixed;left:0;right:0;bottom:10px;display:none;justify-content:center;z-index:40}
+.sticky-cta .btn{width:92%;max-width:420px}
+
+@media (max-width: 640px){
+  .sticky-cta{display:flex}
+}
