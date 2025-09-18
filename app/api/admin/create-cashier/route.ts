@@ -9,9 +9,24 @@ const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
+// Tipos flexibles para action_link (según plan/SDK puede venir en raíz o en properties)
+type LinkWithRoot = { action_link?: string }
+type LinkWithProps = { properties?: { action_link?: string } }
+
+// Obtiene action_link desde distintas formas sin romper TS
+function pickActionLink(data: unknown): string | null {
+  const root = data as LinkWithRoot
+  const props = data as LinkWithProps
+  return root?.action_link ?? props?.properties?.action_link ?? null
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { email, coins = 0 } = (await req.json()) as { email: string; coins?: number }
+    const body = (await req.json()) as { email?: string; coins?: number | string }
+    const email = (body?.email || '').trim()
+    // Soporte a coins string/number y aseguramos entero >= 0
+    const coinsNum = Math.max(0, Math.floor(Number(body?.coins ?? 0)))
+
     if (!email || !email.includes('@')) {
       return NextResponse.json({ error: 'Email inválido' }, { status: 400 })
     }
@@ -41,16 +56,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
     }
 
-    // 2) buscar usuario por email
+    // 2) buscar usuario por email (pagina 1; tipado explícito evita `never[]`)
     const { data: listPage1, error: listErr } =
       await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 })
     if (listErr) throw listErr
 
-    // ✅ FIX: tipar users explícitamente para evitar error TS
     const users: User[] = listPage1?.users ?? []
-    const existing = users.find(
-      (u) => (u?.email ?? '').toLowerCase() === email.toLowerCase()
-    )
+    const existing = users.find((u) => (u?.email ?? '').toLowerCase() === email.toLowerCase())
 
     let authUserId: string | null = null
     let inviteLink: string | null = null
@@ -69,8 +81,8 @@ export async function POST(req: NextRequest) {
       }
       invited = true
       authUserId = invitedData.user?.id ?? null
-      // algunos planes devuelven el action_link directamente
-      inviteLink = (invitedData as any)?.action_link ?? null
+      // algunos planes devuelven el action_link en raíz; otros en properties
+      inviteLink = pickActionLink(invitedData) // <- a prueba de SDK/plan
     } else {
       // 3B) ya existe -> generar link de recuperación
       authUserId = existing.id
@@ -82,7 +94,7 @@ export async function POST(req: NextRequest) {
       if (linkErr) {
         return NextResponse.json({ error: linkErr.message }, { status: 500 })
       }
-      recoveryLink = (linkData as any)?.properties?.action_link ?? null
+      recoveryLink = pickActionLink(linkData) // <- lectura segura
     }
 
     if (!authUserId) {
@@ -97,13 +109,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: upErr.message }, { status: 500 })
     }
 
+    // Si tu tabla wallets tiene unique(user_id), el upsert simple funciona;
+    // si querés ser ultra explícito: .upsert({ ... }, { onConflict: 'user_id' })
     await supabaseAdmin.from('wallets').upsert({ user_id: authUserId, balance: 0 })
 
     // 5) si coins > 0 -> mint inicial auditable
-    if (Number.isFinite(coins) && coins > 0) {
+    if (coinsNum > 0) {
       await supabaseAdmin.rpc('wallet_increment', {
         p_user_id: authUserId,
-        p_amount: Math.floor(coins),
+        p_amount: coinsNum,
         p_actor: userData.user.id,
         p_note: 'Alta/ascenso de cajero',
       })
